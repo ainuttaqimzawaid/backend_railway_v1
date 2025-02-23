@@ -1,7 +1,7 @@
-const sequelize = require('../../config/sequelize')
-const { Sequelize, DataTypes } = require('sequelize');
+const sequelize = require('../../config/sequelize');
+const { DataTypes } = require('sequelize');
 
-const Book = sequelize.define('Books', {
+const Books = sequelize.define('Books', {
     title: {
         type: DataTypes.STRING,
         allowNull: false,
@@ -22,10 +22,10 @@ const Book = sequelize.define('Books', {
         type: DataTypes.BOOLEAN,
         allowNull: false,
     },
-    image_url: {
-        type: DataTypes.TEXT,
-        allowNull: false,
-    },
+    // image_url: {
+    //     type: DataTypes.TEXT,
+    //     allowNull: false,
+    // },
 });
 
-module.exports = Book;
+module.exports = Books;

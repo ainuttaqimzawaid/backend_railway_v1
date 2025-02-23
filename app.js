@@ -4,11 +4,13 @@ const cors = require('cors')
 const morgan = require('morgan')
 const port = 5000
 const productRouter = require('./app/product/routes')
+const productRouter_V2 = require('./app/product_v2/routes')
 
 
-app.use(morgan('dev'));
 app.use(cors());
-app.use(('/api/v1'), productRouter);
+app.use(morgan('dev'));
+// app.use(('/api/v1'), productRouter);
+app.use(('/api/v2'), productRouter_V2);
 app.use((req, res) => {
     res.status(404);
     res.send({
