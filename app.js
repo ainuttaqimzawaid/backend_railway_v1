@@ -9,6 +9,8 @@ const productRouter_V2 = require('./app/product_v2/routes')
 
 app.use(cors());
 app.use(morgan('dev'));
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 // app.use(('/api/v1'), productRouter);
 app.use(('/api/v2'), productRouter_V2);
 app.use((req, res) => {
