@@ -22,10 +22,10 @@ const Books = sequelize.define('Books', {
         type: DataTypes.BOOLEAN,
         allowNull: false,
     },
-    // image_url: {
-    //     type: DataTypes.TEXT,
-    //     allowNull: false,
-    // },
+    image_url: {
+        type: DataTypes.TEXT,
+        allowNull: false,
+    },
 });
 
 module.exports = Books;
