@@ -5,6 +5,7 @@ const morgan = require('morgan');
 const port = 5000;
 const productRouter = require('./app/product/routes');
 const productRouter_V2 = require('./app/product_v2/routes');
+const categoryRouter = require('./app/category/routes');
 const path = require('path');
 
 
@@ -15,6 +16,7 @@ app.use(express.json());
 app.use('/public', express.static(path.join(__dirname, 'public')))
 // app.use(('/api/v1'), productRouter);
 app.use(('/api/v2'), productRouter_V2);
+app.use(('/api/v2'), categoryRouter);
 app.use((req, res) => {
     res.status(404);
     res.send({
