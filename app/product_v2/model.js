@@ -1,4 +1,5 @@
 const sequelize = require('../../config/sequelize');
+const Categories = require('../category/model');
 const { DataTypes } = require('sequelize');
 
 const Books = sequelize.define('Books', {
@@ -26,6 +27,20 @@ const Books = sequelize.define('Books', {
         type: DataTypes.TEXT,
         allowNull: false,
     },
+    categoryId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: Categories,
+            key: 'id',
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE',
+    },
 });
+
+// Definisi relasi One-to-Many
+Categories.hasMany(Books, { foreignKey: 'categoryId' });
+Books.belongsTo(Categories, { foreignKey: 'categoryId' });
 
 module.exports = Books;
