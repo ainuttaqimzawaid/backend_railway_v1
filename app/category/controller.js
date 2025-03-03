@@ -83,7 +83,7 @@ const destroy = async (req, res) => {
       await Categories.destroy({
          where: { id }
       })
-      return res.json({ category, message: 'Book successfully deleted' });
+      return res.json({ category, message: 'Category successfully deleted' });
    } catch (err) {
       next(err);
    }

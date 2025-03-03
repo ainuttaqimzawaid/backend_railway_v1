@@ -5,7 +5,7 @@ const os = require('os');
 const fs = require('fs');
 const path = require('path');
 const config = require('../../config/config.js');
-const {Books, TagBooks} = require('./model');
+const { Books, TagBooks } = require('./model');
 const Category = require('../category/model.js');
 const Tag = require('../tag/model.js');
 
@@ -14,42 +14,46 @@ const index = async (req, res, next) => {
       const { search } = req.query;
       let book = '';
       if (search) {
-         book = await Books.findAll({
+         book = await Books.findAndCountAll({
             where: {
                title: {
                   [Op.like]: `%${search}%`  // Pencarian substring dengan wildcard
                }
             },
             include: [
-    {
-      model: Category, // Mengambil data Category yang berelasi dengan Book
-      attributes: ['id', 'name'] // Menampilkan id dan name dari Category
-    },
-    {
-      model: Tag, // Mengambil data Tag yang berelasi dengan Book
-      attributes: ['id', 'name'],
-      through: {
-        attributes: [] // Menghilangkan atribut dari tabel penghubung (BookTags)
-      }
-    }
-  ]
+               {
+                  model: Category, // Mengambil data Category yang berelasi dengan Book
+                  attributes: ['id', 'name'] // Menampilkan id dan name dari Category
+               },
+               {
+                  model: Tag, // Mengambil data Tag yang berelasi dengan Book
+                  attributes: ['id', 'name'],
+                  through: {
+                     attributes: [] // Menghilangkan atribut dari tabel penghubung (BookTags)
+                  }
+               }
+            ],
+            limit: 5,
+            offset: 5,
          })
          return res.json(book)
       } else {
-         let book = await Books.findAll({
+         let book = await Books.findAndCountAll({
             include: [
-    {
-      model: Category, // Mengambil data Category yang berelasi dengan Book
-      attributes: ['id', 'name'] // Menampilkan id dan name dari Category
-    },
-    {
-      model: Tag, // Mengambil data Tag yang berelasi dengan Book
-      attributes: ['id', 'name'],
-      through: {
-        attributes: [] // Menghilangkan atribut dari tabel penghubung (BookTags)
-      }
-    }
-  ]
+               {
+                  model: Category, // Mengambil data Category yang berelasi dengan Book
+                  attributes: ['id', 'name'] // Menampilkan id dan name dari Category
+               },
+               {
+                  model: Tag, // Mengambil data Tag yang berelasi dengan Book
+                  attributes: ['id', 'name'],
+                  through: {
+                     attributes: [] // Menghilangkan atribut dari tabel penghubung (BookTags)
+                  }
+               }
+            ],
+            limit: 5,
+            offset: 5,
          });
          return res.json(book);
       }
@@ -66,18 +70,18 @@ const view = async (req, res, next) => {
             id
          },
          include: [
-    {
-      model: Category, // Mengambil data Category yang berelasi dengan Book
-      attributes: ['id', 'name'] // Menampilkan id dan name dari Category
-    },
-    {
-      model: Tag, // Mengambil data Tag yang berelasi dengan Book
-      attributes: ['id', 'name'],
-      through: {
-        attributes: [] // Menghilangkan atribut dari tabel penghubung (BookTags)
-      }
-    }
-  ]
+            {
+               model: Category, // Mengambil data Category yang berelasi dengan Book
+               attributes: ['id', 'name'] // Menampilkan id dan name dari Category
+            },
+            {
+               model: Tag, // Mengambil data Tag yang berelasi dengan Book
+               attributes: ['id', 'name'],
+               through: {
+                  attributes: [] // Menghilangkan atribut dari tabel penghubung (BookTags)
+               }
+            }
+         ]
       });
       return res.json(book);
    } catch (err) {
@@ -89,7 +93,6 @@ const store = async (req, res, next) => {
    try {
       const { title, author, year, isbn, status, categoryId } = req.body;
       const category = await Category.findOne({ where: { name: categoryId } });
-
 
       if (req.file) {
          let tmp_path = req.file.path;
@@ -104,9 +107,8 @@ const store = async (req, res, next) => {
          src.on('end', async () => {
             try {
                await Books.sync();
-               await TagBooks.sync({force:true})
-               let book = await Books.create({ title, author, year, isbn, status, image_url: filename, categoryId: category.id,  });
-            
+               await TagBooks.sync({ force: true })
+               let book = await Books.create({ title, author, year, isbn, status, image_url: filename, categoryId: category.id, });
                return res.json(book);
             } catch (err) {
                fs.unlinkSync(target_path);
@@ -141,18 +143,29 @@ const store = async (req, res, next) => {
    }
 };
 
-const update = async (req, res) => {
+const update = async (req, res, next) => {
    try {
-   const id = req.params.id;
+      const id = req.params.id;
       const { title, author, year, isbn, status, categoryId } = req.body;
-        const tagId = req.body.tagId.split(','); // "1,2,3" => [1,2,3]
-     console.log('inihalamankkjh'+tagId)
+      let tagNames = req.body.tagNames.split(",").map(name => name.trim()); // Hilangkan spasi ekstra
+      // const tagId = req.body.tagId.split(','); // "1,2,3" => [1,2,3]
+      console.log("Received names:", tagNames);
+      console.log("Type of names:", typeof tagNames);
+      console.log("Is Array?", Array.isArray(tagNames));
+
+      const tags = await Tag.findAll({
+         where: {
+            name: {
+               [Op.in]: tagNames
+            }
+         }
+      })
       const category = await Category.findOne({ where: { name: categoryId } });
-        // Buat array data untuk insert ke tabel perantara
-        const data = tagId.map(tagId => ({
-            TagId: parseInt(tagId), // Convert string ke integer
-            BookId: parseInt(id)
-        }));
+      // Buat array data untuk insert ke tabel perantara
+      const booktags = tags.map(tagId => ({
+         TagId: tagId.id, // Convert string ke integer
+         BookId: parseInt(id)
+      }));
 
       let book = await Books.findByPk(id);
       if (req.file) {
@@ -177,7 +190,7 @@ const update = async (req, res) => {
                // Update data buku
                await book.update({ title, author, year, isbn, status, image_url: filename, categoryId: category.id, });
                // Simpan semua relasi sekaligus
-        await TagBooks.bulkCreate(data);
+               await TagBooks.bulkCreate(booktags);
 
                return res.json({ book, message: 'Successfully updated' });
             } catch (err) {
@@ -199,6 +212,8 @@ const update = async (req, res) => {
       } else {
          // Update data buku
          await book.update({ title, author, year, isbn, status, image_url: filename, categoryId: category.id, });
+         // Simpan semua relasi sekaligus
+         await TagBooks.bulkCreate(booktags);
          return res.json({ book, message: 'Successfully updated' });
       }
    } catch (err) {
@@ -224,6 +239,9 @@ const destroy = async (req, res) => {
       }
 
       await Books.destroy({
+         where: { id }
+      })
+      await TagBooks.destroy({
          where: { id }
       })
       return res.json({ book, message: 'Book successfully deleted' });
