@@ -5,8 +5,9 @@ const os = require('os');
 const fs = require('fs');
 const path = require('path');
 const config = require('../../config/config.js');
-const Books = require('./model');
+const {Books, TagBooks} = require('./model');
 const Category = require('../category/model.js');
+const Tag = require('../tag/model.js');
 
 const index = async (req, res, next) => {
    try {
@@ -19,12 +20,36 @@ const index = async (req, res, next) => {
                   [Op.like]: `%${search}%`  // Pencarian substring dengan wildcard
                }
             },
-            include: Category,
+            include: [
+    {
+      model: Category, // Mengambil data Category yang berelasi dengan Book
+      attributes: ['id', 'name'] // Menampilkan id dan name dari Category
+    },
+    {
+      model: Tag, // Mengambil data Tag yang berelasi dengan Book
+      attributes: ['id', 'name'],
+      through: {
+        attributes: [] // Menghilangkan atribut dari tabel penghubung (BookTags)
+      }
+    }
+  ]
          })
          return res.json(book)
       } else {
          let book = await Books.findAll({
-            include: Category,
+            include: [
+    {
+      model: Category, // Mengambil data Category yang berelasi dengan Book
+      attributes: ['id', 'name'] // Menampilkan id dan name dari Category
+    },
+    {
+      model: Tag, // Mengambil data Tag yang berelasi dengan Book
+      attributes: ['id', 'name'],
+      through: {
+        attributes: [] // Menghilangkan atribut dari tabel penghubung (BookTags)
+      }
+    }
+  ]
          });
          return res.json(book);
       }
@@ -40,7 +65,19 @@ const view = async (req, res, next) => {
          where: {
             id
          },
-         include: Category,
+         include: [
+    {
+      model: Category, // Mengambil data Category yang berelasi dengan Book
+      attributes: ['id', 'name'] // Menampilkan id dan name dari Category
+    },
+    {
+      model: Tag, // Mengambil data Tag yang berelasi dengan Book
+      attributes: ['id', 'name'],
+      through: {
+        attributes: [] // Menghilangkan atribut dari tabel penghubung (BookTags)
+      }
+    }
+  ]
       });
       return res.json(book);
    } catch (err) {
@@ -53,10 +90,6 @@ const store = async (req, res, next) => {
       const { title, author, year, isbn, status, categoryId } = req.body;
       const category = await Category.findOne({ where: { name: categoryId } });
 
-      if (!category) {
-         console.error('Category not found!');
-         return;
-      }
 
       if (req.file) {
          let tmp_path = req.file.path;
@@ -71,7 +104,9 @@ const store = async (req, res, next) => {
          src.on('end', async () => {
             try {
                await Books.sync();
-               let book = await Books.create({ title, author, year, isbn, status, image_url: filename, categoryId: category.id, });
+               await TagBooks.sync({force:true})
+               let book = await Books.create({ title, author, year, isbn, status, image_url: filename, categoryId: category.id,  });
+            
                return res.json(book);
             } catch (err) {
                fs.unlinkSync(target_path);
@@ -107,10 +142,18 @@ const store = async (req, res, next) => {
 };
 
 const update = async (req, res) => {
-   const id = req.params.id;
    try {
+   const id = req.params.id;
       const { title, author, year, isbn, status, categoryId } = req.body;
+        const tagId = req.body.tagId.split(','); // "1,2,3" => [1,2,3]
+     console.log('inihalamankkjh'+tagId)
       const category = await Category.findOne({ where: { name: categoryId } });
+        // Buat array data untuk insert ke tabel perantara
+        const data = tagId.map(tagId => ({
+            TagId: parseInt(tagId), // Convert string ke integer
+            BookId: parseInt(id)
+        }));
+
       let book = await Books.findByPk(id);
       if (req.file) {
          let tmp_path = req.file.path;
@@ -133,6 +176,8 @@ const update = async (req, res) => {
 
                // Update data buku
                await book.update({ title, author, year, isbn, status, image_url: filename, categoryId: category.id, });
+               // Simpan semua relasi sekaligus
+        await TagBooks.bulkCreate(data);
 
                return res.json({ book, message: 'Successfully updated' });
             } catch (err) {

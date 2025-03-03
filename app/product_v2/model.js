@@ -1,5 +1,6 @@
 const sequelize = require('../../config/sequelize');
 const Categories = require('../category/model');
+const Tags = require('../tag/model');
 const { DataTypes } = require('sequelize');
 
 const Books = sequelize.define('Books', {
@@ -39,8 +40,24 @@ const Books = sequelize.define('Books', {
     },
 });
 
+// Model perantara untuk Many-to-Many
+const TagBooks = sequelize.define('TagBooks', {
+    id: {
+       type: DataTypes.INTEGER,
+       primaryKey: true,
+       autoIncrement: true 
+    },
+}, { timestamps: false });
+
+
+
 // Definisi relasi One-to-Many
 Categories.hasMany(Books, { foreignKey: 'categoryId' });
 Books.belongsTo(Categories, { foreignKey: 'categoryId' });
 
-module.exports = Books;
+// Relasi Many-to-Many antara Book dan Tag melalui tabel penghubung BookTag
+Books.belongsToMany(Tags, { through: 'TagBooks' });
+Tags.belongsToMany(Books, { through: 'TagBooks' });
+
+
+module.exports = {Books, TagBooks};

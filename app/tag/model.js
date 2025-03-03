@@ -8,4 +8,9 @@ const Tags = sequelize.define('Tags', {
     },
 });
 
+// Relasi Many-to-Many antara Tag dan Book melalui tabel penghubung BookTag
+//Tags.belongsToMany(Books, { through: 'BookTag' });
+//Books.belongsToMany(Tags, { through: 'BookTag' });
+
+
 module.exports = Tags;
