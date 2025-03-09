@@ -24,9 +24,11 @@ const Users = sequelize.define('Users', {
     type: DataTypes.STRING,
     allowNull: false,
     isIn: [['admin', 'user']],
+    defaultValue: 'user',
   },
   token: {
-    type: DataTypes.STRING
+    type: DataTypes.JSON, // Menyimpan array token dalam format JSON
+    defaultValue: [],
   }
 });
 
@@ -46,8 +48,8 @@ Users.beforeCreate(async (user) => {
 });
 
 // Metode untuk memvalidasi password saat login
-Users.prototype.validPassword = async function (password) {
-  return await bcrypt.compare(password, this.password); // membandingkan password yang dimasukkan dengan hash yang ada di database
-};
+// Users.prototype.validPassword = async function (password) {
+//   return await bcrypt.compare(password, this.password); // membandingkan password yang dimasukkan dengan hash yang ada di database
+// };
 
 module.exports = Users;
