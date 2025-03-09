@@ -1,33 +1,33 @@
 const sequelize = require('../../config/sequelize');
 const { DataTypes } = require('sequelize');
-const bcrypt = require('bcryptjs');
+const bcrypt = require('bcrypt');
 
 const Users = sequelize.define('Users', {
-    userName: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        unique: true,
-    },
-    email: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        unique: true,
-        validate: {
-           isEmail: true
-        }
-    },
-    password: {
-        type: DataTypes.STRING,
-        allowNull: false,
-    },
-    role: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        isIn: [['admin', 'user']],
-    },
-    token: {
-       type:DataTypes.STRING
+  userName: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    unique: true,
+  },
+  email: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    unique: true,
+    validate: {
+      isEmail: true
     }
+  },
+  password: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  role: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    isIn: [['admin', 'user']],
+  },
+  token: {
+    type: DataTypes.STRING
+  }
 });
 
 // Validasi tambahan bisa ditambahkan di sini
