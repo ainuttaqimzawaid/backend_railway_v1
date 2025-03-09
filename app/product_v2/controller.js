@@ -148,7 +148,6 @@ const update = async (req, res, next) => {
       const id = req.params.id;
       const { title, author, year, isbn, status, categoryId } = req.body;
       let tagNames = req.body.tagNames.split(",").map(name => name.trim()); // Hilangkan spasi ekstra
-      // const tagId = req.body.tagId.split(','); // "1,2,3" => [1,2,3]
       console.log("Received names:", tagNames);
       console.log("Type of names:", typeof tagNames);
       console.log("Is Array?", Array.isArray(tagNames));

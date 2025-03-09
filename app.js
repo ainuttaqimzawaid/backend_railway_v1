@@ -7,6 +7,7 @@ const port = 5000;
 const productRouter_V2 = require('./app/product_v2/routes');
 const categoryRouter = require('./app/category/routes');
 const tagRouter = require('./app/tag/routes');
+const authRouter = require('./app/auth/routes');
 const path = require('path');
 
 
@@ -19,6 +20,7 @@ app.use('/public', express.static(path.join(__dirname, 'public')))
 app.use(('/api/v2'), productRouter_V2);
 app.use(('/api/v2'), categoryRouter);
 app.use(('/api/v2'), tagRouter);
+app.use(('/api/v2/auth'), authRouter);
 app.use((req, res) => {
     res.status(404);
     res.send({
