@@ -17,7 +17,7 @@ const sequelize = new Sequelize(
     {
         host: process.env.DB_HOST,
         port: process.env.DB_PORT,
-        dialect: process.env.DB_DIALECT, // Gantilah sesuai database yang digunakan ('mysql', 'postgres', 'sqlite', dll.)
+        dialect: 'mysql',
         logging: false, // Opsional: mematikan logging query SQL
     }
 );
