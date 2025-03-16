@@ -3,6 +3,7 @@ const app = express();
 const cors = require('cors');
 const morgan = require('morgan');
 const port = 5000;
+const { decodeToken } = require('./middlewares');
 // const productRouter = require('./app/product/routes');
 const productRouter_V2 = require('./app/product_v2/routes');
 const categoryRouter = require('./app/category/routes');
@@ -16,11 +17,12 @@ app.use(morgan('dev'));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use('/public', express.static(path.join(__dirname, 'public')))
+app.use(decodeToken());
 // app.use(('/api/v1'), productRouter);
 app.use(('/api/v2'), productRouter_V2);
 app.use(('/api/v2'), categoryRouter);
 app.use(('/api/v2'), tagRouter);
-app.use(('/api/v2/auth'), authRouter);
+app.use(('/auth'), authRouter);
 app.use((req, res) => {
     res.status(404);
     res.send({
