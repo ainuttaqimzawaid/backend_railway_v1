@@ -38,7 +38,7 @@ const index = async (req, res, next) => {
          })
          return res.json(book)
       } else {
-         let book = await Books.findAndCountAll({
+         book = await Books.findAndCountAll({
             include: [
                {
                   model: Category, // Mengambil data Category yang berelasi dengan Book
@@ -53,7 +53,7 @@ const index = async (req, res, next) => {
                }
             ],
             limit: 5,
-            offset: 5,
+            // offset: 5, //skip row
          });
          return res.json(book);
       }
