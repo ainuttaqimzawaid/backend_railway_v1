@@ -1,5 +1,4 @@
-const router = require('express').Router();
-const Tags = require('./model');
+const { Tags } = require('../Assosiation/Model');
 
 const index = async (req, res, next) => {
     try {

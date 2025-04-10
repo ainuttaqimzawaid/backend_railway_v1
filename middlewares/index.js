@@ -13,7 +13,6 @@ function decodeToken() {
 
             if (!token) return next();
 
-            console.log('haloooooooooooooooo' + token)
             req.user = jwt.verify(token, config.secretKey);
 
             // Cari user dengan token yang cocok

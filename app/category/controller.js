@@ -1,5 +1,5 @@
-const router = require('express').Router();
-const Categories = require('./model');
+const { fn, col } = require('sequelize');
+const { Books, Categories, sequelize } = require('../Assosiation/Model')
 
 const index = async (req, res, next) => {
    try {
@@ -11,11 +11,22 @@ const index = async (req, res, next) => {
                name: {
                   [Op.like]: `%${search}%`
                }
-            }
+            },
+            include: [
+               {
+                  model: Books,
+               }
+            ],
          })
          return res.json(category)
       } else {
-         let category = await Categories.findAll();
+         let category = await Categories.findAll({
+            include: [
+               {
+                  model: Books,
+               }
+            ],
+         });
          return res.json(category);
       }
    } catch (err) {

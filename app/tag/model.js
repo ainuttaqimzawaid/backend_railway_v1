@@ -1,16 +1,10 @@
-const sequelize = require('../../config/sequelize');
-const { DataTypes } = require('sequelize');
+module.exports = (sequelize, DataTypes) => {
+    const Tag = sequelize.define('Tag', {
+        name: {
+            type: DataTypes.STRING,
+            allowNull: false,
+        },
+    });
 
-const Tags = sequelize.define('Tags', {
-    name: {
-        type: DataTypes.STRING,
-        allowNull: false,
-    },
-});
-
-// Relasi Many-to-Many antara Tag dan Book melalui tabel penghubung BookTag
-//Tags.belongsToMany(Books, { through: 'BookTag' });
-//Books.belongsToMany(Tags, { through: 'BookTag' });
-
-
-module.exports = Tags;
+    return Tag;
+};

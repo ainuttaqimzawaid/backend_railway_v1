@@ -1,13 +1,13 @@
-const router = require('express').Router();
 const { Op } = require('sequelize');
 const multer = require('multer');
 const os = require('os');
 const fs = require('fs');
 const path = require('path');
 const config = require('../../config/config.js');
-const { Books, TagBooks } = require('./model');
-const Category = require('../category/model.js');
-const Tag = require('../tag/model.js');
+const { Books, Categories, TagBooks, Tags } = require('../Assosiation/Model.js')
+// const { Books, TagBooks } = require('./model');
+// const Category = require('../category/model.js');
+// const Tag = require('../tag/model.js');
 
 const index = async (req, res, next) => {
    try {
@@ -22,11 +22,11 @@ const index = async (req, res, next) => {
             },
             include: [
                {
-                  model: Category, // Mengambil data Category yang berelasi dengan Book
+                  model: Categories, // Mengambil data Category yang berelasi dengan Book
                   attributes: ['id', 'name'] // Menampilkan id dan name dari Category
                },
                {
-                  model: Tag, // Mengambil data Tag yang berelasi dengan Book
+                  model: Tags, // Mengambil data Tag yang berelasi dengan Book
                   attributes: ['id', 'name'],
                   through: {
                      attributes: [] // Menghilangkan atribut dari tabel penghubung (BookTags)
@@ -41,11 +41,11 @@ const index = async (req, res, next) => {
          book = await Books.findAndCountAll({
             include: [
                {
-                  model: Category, // Mengambil data Category yang berelasi dengan Book
+                  model: Categories, // Mengambil data Category yang berelasi dengan Book
                   attributes: ['id', 'name'] // Menampilkan id dan name dari Category
                },
                {
-                  model: Tag, // Mengambil data Tag yang berelasi dengan Book
+                  model: Tags, // Mengambil data Tag yang berelasi dengan Book
                   attributes: ['id', 'name'],
                   through: {
                      attributes: [] // Menghilangkan atribut dari tabel penghubung (BookTags)
@@ -71,11 +71,11 @@ const view = async (req, res, next) => {
          },
          include: [
             {
-               model: Category, // Mengambil data Category yang berelasi dengan Book
+               model: Categories, // Mengambil data Category yang berelasi dengan Book
                attributes: ['id', 'name'] // Menampilkan id dan name dari Category
             },
             {
-               model: Tag, // Mengambil data Tag yang berelasi dengan Book
+               model: Tags, // Mengambil data Tag yang berelasi dengan Book
                attributes: ['id', 'name'],
                through: {
                   attributes: [] // Menghilangkan atribut dari tabel penghubung (BookTags)
@@ -159,7 +159,7 @@ const update = async (req, res, next) => {
             }
          }
       })
-      const category = await Category.findOne({ where: { name: categoryId } });
+      const category = await Categories.findOne({ where: { name: categoryId } });
       // Buat array data untuk insert ke tabel perantara
       const booktags = tags.map(tagId => ({
          TagId: tagId.id, // Convert string ke integer
