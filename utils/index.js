@@ -17,11 +17,14 @@ const policies = {
     },
     user(user, { can }) {
         can('view', 'Order');
-        can('create', 'Order');
-        can('read', 'Order', { uder_id: user._id });
+        can('read', 'Order', { user_id: user._id });
         can('update', 'Users', { _id: user._id });
-        can('read', 'Cart', { user_id: user._id });
-        can('update', 'Cart', { user_id: user._id });
+        can('read', 'Queue', { user_id: user._id });
+        can('create', 'Queue', { user_id: user._id });
+        can('delete', 'Queue', { user_id: user._id });
+        can('read', 'Borrowing', { user_id: user._id });
+        can('create', 'Borrowing', { user_id: user._id });
+        can('update', 'Borrowing', { user_id: user._id });
         can('view', 'DeliveryAddress');
         can('create', 'DeliveryAddress', { user_id: user._id });
         can('update', 'DeliveryAddress', { user_id: user._id });

@@ -3,8 +3,8 @@ const { getToken, policyFor } = require("../utils");
 
 const jwt = require('jsonwebtoken');
 const { Op, Sequelize } = require('sequelize');
-const Users = require('../app/user/model'); // Sesuaikan dengan struktur proyek Anda
-const config = require('../config/config'); // Pastikan file konfigurasi benar
+const { Users } = require('../app/Assosiation/Model')
+const config = require('../config/config');
 
 function decodeToken() {
     return async function (req, res, next) {

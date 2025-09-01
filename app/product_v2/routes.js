@@ -8,6 +8,18 @@ router.get('/book',
     bookController.index
 );
 
+router.get('/book/favorite',
+    bookController.favorite
+);
+
+router.get('/book/new-arrival',
+    bookController.newArrival
+);
+
+router.get('/book/new-release',
+    bookController.newRelease
+);
+
 router.get('/book/:id',
     bookController.view
 );

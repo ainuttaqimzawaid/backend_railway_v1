@@ -8,6 +8,9 @@ const { decodeToken } = require('./middlewares');
 const productRouter_V2 = require('./app/product_v2/routes');
 const categoryRouter = require('./app/category/routes');
 const tagRouter = require('./app/tag/routes');
+const borrowingRouter = require('./app/borrowing/routes');
+const queueRouter = require('./app/queue/routes');
+const reviewRouter = require('./app/review/routes');
 const authRouter = require('./app/auth/routes');
 const path = require('path');
 
@@ -22,6 +25,9 @@ app.use(decodeToken());
 app.use(('/api/v2'), productRouter_V2);
 app.use(('/api/v2'), categoryRouter);
 app.use(('/api/v2'), tagRouter);
+app.use(('/api/v2'), borrowingRouter);
+app.use(('/api/v2'), queueRouter);
+app.use(('/api/v2'), reviewRouter);
 app.use(('/auth'), authRouter);
 app.use((req, res) => {
     res.status(404);

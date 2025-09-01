@@ -13,11 +13,11 @@ router.post('/tag',
     tagController.store
 );
 router.put('/tag/:id',
-    police_check('create', 'Books'),
+    police_check('update', 'Books'),
     tagController.update
 );
 router.delete('/tag/:id',
-    police_check('create', 'Books'),
+    police_check('delete', 'Books'),
     tagController.destroy
 );
 

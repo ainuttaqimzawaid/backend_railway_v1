@@ -5,9 +5,6 @@ const fs = require('fs');
 const path = require('path');
 const config = require('../../config/config.js');
 const { Books, Categories, TagBooks, Tags } = require('../Assosiation/Model.js')
-// const { Books, TagBooks } = require('./model');
-// const Category = require('../category/model.js');
-// const Tag = require('../tag/model.js');
 
 const index = async (req, res, next) => {
    try {
@@ -33,8 +30,8 @@ const index = async (req, res, next) => {
                   }
                }
             ],
-            limit: 5,
-            offset: 5,
+            limit: 20,
+            offset: 0,
          })
          return res.json(book)
       } else {
@@ -52,11 +49,57 @@ const index = async (req, res, next) => {
                   }
                }
             ],
-            limit: 5,
+            limit: 20,
             // offset: 5, //skip row
          });
          return res.json(book);
       }
+   } catch (err) {
+      next(err);
+   }
+};
+
+const favorite = async (req, res, next) => {
+   try {
+      const books = await Books.findAll({
+         order: [['readCount', 'DESC']],
+         limit: 5
+      });
+      return res.json(books);
+   } catch (err) {
+      next(err);
+   }
+};
+
+const newRelease = async (req, res, next) => {
+   try {
+      const books = await Books.findAll({
+         order: [['year', 'DESC']],
+         limit: 5
+      });
+      return res.json(books);
+   } catch (err) {
+      next(err);
+   }
+};
+
+const newArrival = async (req, res, next) => {
+   try {
+      const days = parseInt(req.query.days) || 30; // default: 30 hari terakhir
+      const fromDate = new Date();
+      fromDate.setDate(fromDate.getDate() - days);
+
+      const books = await Books.findAll({
+         where: {
+            createdAt: {
+               [Op.gte]: fromDate
+            }
+         },
+         order: [['createdAt', 'DESC']],
+         limit: parseInt(req.query.limit) || 10
+      });
+
+      return res.json(books);
    } catch (err) {
       next(err);
    }
@@ -92,7 +135,7 @@ const view = async (req, res, next) => {
 const store = async (req, res, next) => {
    try {
       const { title, author, year, isbn, status, categoryId } = req.body;
-      const category = await Category.findOne({ where: { name: categoryId } });
+      const category = await Categories.findOne({ where: { name: categoryId } });
 
       if (req.file) {
          let tmp_path = req.file.path;
@@ -107,7 +150,7 @@ const store = async (req, res, next) => {
          src.on('end', async () => {
             try {
                await Books.sync();
-               await TagBooks.sync({ force: true })
+               await TagBooks.sync()
                let book = await Books.create({ title, author, year, isbn, status, image_url: filename, categoryId: category.id, });
                return res.json(book);
             } catch (err) {
@@ -147,12 +190,19 @@ const update = async (req, res, next) => {
    try {
       const id = req.params.id;
       const { title, author, year, isbn, status, categoryId } = req.body;
-      let tagNames = req.body.tagNames.split(",").map(name => name.trim()); // Hilangkan spasi ekstra
-      console.log("Received names:", tagNames);
-      console.log("Type of names:", typeof tagNames);
-      console.log("Is Array?", Array.isArray(tagNames));
+      // let tagNames = req.body.tagNames.split(",").map(name => name.trim()); // Hilangkan spasi ekstra
+      // console.log("Received names:", tagNames);
+      // console.log("Type of names:", typeof tagNames);
+      // console.log("Is Array?", Array.isArray(tagNames));
+      let tagNames = [];
 
-      const tags = await Tag.findAll({
+      if (req.body.tagNames && typeof req.body.tagNames === 'string') {
+         tagNames = req.body.tagNames.split(',').map(name => name.trim());
+      } else {
+         console.log('tagNames tidak dikirim atau bukan string!');
+      }
+
+      const tags = await Tags.findAll({
          where: {
             name: {
                [Op.in]: tagNames
@@ -251,6 +301,9 @@ const destroy = async (req, res) => {
 
 module.exports = {
    index,
+   favorite,
+   newArrival,
+   newRelease,
    view,
    store,
    update,

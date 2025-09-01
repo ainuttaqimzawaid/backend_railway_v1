@@ -58,6 +58,10 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING,
             allowNull: true,
         },
+        readCount: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+        },
         status: {
             type: DataTypes.BOOLEAN,
             allowNull: false,
@@ -70,6 +74,16 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.INTEGER,
             allowNull: false,
         },
+        totalCopies: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            defaultValue: 1,
+        },
+        availableCopies: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            defaultValue: 1,
+        }
     });
 
     return Book;

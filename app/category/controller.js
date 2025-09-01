@@ -50,21 +50,32 @@ const view = async (req, res, next) => {
 
 const store = async (req, res, next) => {
    try {
-      const { name } = req.body;
       await Categories.sync();
-      let category = await Categories.create({ name });
-      return res.json(category);
+
+      let categories;
+
+      if (Array.isArray(req.body)) {
+         // Bulk insert
+         categories = await Categories.bulkCreate(req.body);
+      } else {
+         // Single insert
+         const { name } = req.body;
+         categories = await Categories.create({ name });
+      }
+
+      return res.json(categories);
    } catch (err) {
       if (err && err.name === 'ValidationError') {
          return res.json({
             error: 1,
             message: err.message,
             fields: err.errors
-         })
+         });
       }
       next(err);
    }
-}
+};
+
 
 const update = async (req, res, next) => {
    try {
