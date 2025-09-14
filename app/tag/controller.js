@@ -2,6 +2,7 @@ const { Tags } = require('../Assosiation/Model');
 
 const index = async (req, res, next) => {
     try {
+        await Tags.sync();
         const { search } = req.query;
         let tag = '';
         if (search) {

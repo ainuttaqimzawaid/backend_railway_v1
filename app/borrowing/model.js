@@ -1,5 +1,5 @@
 module.exports = (sequelize, DataTypes) => {
-    const Borrowing = sequelize.define('Borrowing', {
+    const Borrowing = sequelize.define('borrowing', {
         userId: {
             type: DataTypes.INTEGER,
             allowNull: false,

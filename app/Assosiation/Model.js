@@ -11,7 +11,7 @@ const Queues = require('../queue/model')(sequelize, DataTypes);
 const Reviews = require('../review/model')(sequelize, DataTypes);
 
 // Model perantara untuk Many-to-Many
-const TagBooks = sequelize.define('TagBooks', {
+const TagBooks = sequelize.define('tagbook', {
     id: {
         type: DataTypes.INTEGER,
         primaryKey: true,
@@ -24,8 +24,8 @@ Categories.hasMany(Books, { foreignKey: 'categoryId' });
 Books.belongsTo(Categories, { foreignKey: 'categoryId' });
 
 // Relasi one-to-Many antara Book dan Tag melalui tabel penghubung BookTag
-Books.belongsToMany(Tags, { through: 'TagBooks' });
-Tags.belongsToMany(Books, { through: 'TagBooks' });
+Books.belongsToMany(Tags, { through: 'tagbook' });
+Tags.belongsToMany(Books, { through: 'tagbook' });
 
 // Book - Borrowing (1:M)
 Books.hasMany(Borrowings, { foreignKey: 'bookId' });

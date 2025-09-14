@@ -190,10 +190,6 @@ const update = async (req, res, next) => {
    try {
       const id = req.params.id;
       const { title, author, year, isbn, status, categoryId } = req.body;
-      // let tagNames = req.body.tagNames.split(",").map(name => name.trim()); // Hilangkan spasi ekstra
-      // console.log("Received names:", tagNames);
-      // console.log("Type of names:", typeof tagNames);
-      // console.log("Is Array?", Array.isArray(tagNames));
       let tagNames = [];
 
       if (req.body.tagNames && typeof req.body.tagNames === 'string') {

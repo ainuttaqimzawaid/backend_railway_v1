@@ -1,5 +1,5 @@
 module.exports = (sequelize, DataTypes) => {
-    const Queue = sequelize.define('Queue', {
+    const Queue = sequelize.define('queue', {
         userId: {
             type: DataTypes.INTEGER,
             allowNull: false,

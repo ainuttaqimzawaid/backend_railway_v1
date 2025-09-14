@@ -39,6 +39,7 @@ const store = async (req, res) => {
 
 // GET /api/queues/:bookId
 const index = async (req, res) => {
+    await Queues.sync();
     const userId = req.user.id;
     try {
         const queues = await Queues.findAll({
