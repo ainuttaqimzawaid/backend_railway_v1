@@ -12,6 +12,8 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.ENUM('waiting', 'notified', 'canceled'),
             defaultValue: 'waiting',
         }
+    }, {
+        tableName: 'queues', // 🔑 samakan dengan nama tabel di DB
     });
 
     return Queue;

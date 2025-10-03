@@ -2,6 +2,8 @@ module.exports = (sequelize, DataTypes) => {
     const Review = sequelize.define('Review', {
         rating: { type: DataTypes.INTEGER, allowNull: false }, // 1–5
         comment: { type: DataTypes.TEXT, allowNull: true },
+    }, {
+        tableName: 'reviews', // 🔑 samakan dengan nama tabel di DB
     });
 
     return Review;

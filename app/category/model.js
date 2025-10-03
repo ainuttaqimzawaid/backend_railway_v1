@@ -4,6 +4,8 @@ module.exports = (sequelize, DataTypes) => {
          type: DataTypes.STRING,
          allowNull: false,
       },
+   }, {
+      tableName: 'categories', // 🔑 samakan dengan nama tabel di DB
    });
 
    return Category;

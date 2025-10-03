@@ -1,10 +1,14 @@
 const { Op } = require('sequelize');
-const multer = require('multer');
-const os = require('os');
+// const multer = require('multer');
+// const os = require('os');
 const fs = require('fs');
 const path = require('path');
 const config = require('../../config/config.js');
 const { Books, Categories, TagBooks, Tags } = require('../Assosiation/Model.js')
+const cloudinary = require("../../config/cloudinary.js");
+const { v4: uuidv4 } = require("uuid");
+const e = require('express');
+const streamifier = require('streamifier');
 
 const index = async (req, res, next) => {
    try {
@@ -56,6 +60,8 @@ const index = async (req, res, next) => {
       }
    } catch (err) {
       next(err);
+      // console.error('Sequelize error:', err); // << penting
+      // res.status(500).json({ message: err.message });
    }
 };
 
@@ -137,145 +143,122 @@ const store = async (req, res, next) => {
       const { title, author, year, isbn, status, categoryId } = req.body;
       const category = await Categories.findOne({ where: { name: categoryId } });
 
+      let imageUrl = null;
+      let cloudinaryId = null;
+
       if (req.file) {
-         let tmp_path = req.file.path;
-         let originalExt = req.file.originalname.split('.')[req.file.originalname.split('.').length - 1];
-         let filename = req.file.filename + '.' + originalExt;
-         let target_path = path.resolve(config.rootPath, `public/images/books/${filename}`);
+         const buffer = req.file.buffer;
+         const customName = `book-${Date.now()}-${uuidv4()}`;
 
-         const src = fs.createReadStream(tmp_path);
-         const dest = fs.createWriteStream(target_path);
-         src.pipe(dest);
-
-         src.on('end', async () => {
-            try {
-               await Books.sync();
-               await TagBooks.sync()
-               let book = await Books.create({ title, author, year, isbn, status, image_url: filename, categoryId: category.id, });
-               return res.json(book);
-            } catch (err) {
-               fs.unlinkSync(target_path);
-               if (err && err.name === 'ValidationError') {
-                  return res.json({
-                     error: 1,
-                     message: err.message,
-                     fields: err.errors
-                  })
+         // upload buffer langsung ke cloudinary
+         const result = await new Promise((resolve, reject) => {
+            const uploadStream = cloudinary.uploader.upload_stream(
+               {
+                  folder: "books",
+                  public_id: customName,
+                  overwrite: false,
+                  resource_type: "image"
+               },
+               (error, result) => {
+                  if (error) reject(error);
+                  else resolve(result);
                }
-               next(err);
-            }
-         })
-
-         src.on('error', async () => {
-            next(err);
+            );
+            streamifier.createReadStream(buffer).pipe(uploadStream);
          });
-      } else {
-         await Books.sync();
-         let book = await Books.create({ title, author, year, isbn, status, categoryId: category.id, });
-         return res.json(book);
+
+         imageUrl = result.secure_url;
+         cloudinaryId = result.public_id;
       }
+
+      const book = await Books.create({
+         title,
+         author,
+         year,
+         isbn,
+         status,
+         image_url: imageUrl,
+         cloudinary_id: cloudinaryId,
+         categoryId: category.id,
+      });
+
+      return res.json(book);
    } catch (err) {
-      if (err && err.name === 'ValidationError') {
+      console.error(err);
+      if (err && err.name === "ValidationError") {
          return res.json({
             error: 1,
             message: err.message,
-            fields: err.errors
-         })
-      }
-      next(err)
-   }
-};
-
-const update = async (req, res, next) => {
-   try {
-      const id = req.params.id;
-      const { title, author, year, isbn, status, categoryId } = req.body;
-      // let tagNames = req.body.tagNames.split(",").map(name => name.trim()); // Hilangkan spasi ekstra
-      // console.log("Received names:", tagNames);
-      // console.log("Type of names:", typeof tagNames);
-      // console.log("Is Array?", Array.isArray(tagNames));
-      let tagNames = [];
-
-      if (req.body.tagNames && typeof req.body.tagNames === 'string') {
-         tagNames = req.body.tagNames.split(',').map(name => name.trim());
-      } else {
-         console.log('tagNames tidak dikirim atau bukan string!');
-      }
-
-      const tags = await Tags.findAll({
-         where: {
-            name: {
-               [Op.in]: tagNames
-            }
-         }
-      })
-      const category = await Categories.findOne({ where: { name: categoryId } });
-      // Buat array data untuk insert ke tabel perantara
-      const booktags = tags.map(tagId => ({
-         TagId: tagId.id, // Convert string ke integer
-         BookId: parseInt(id)
-      }));
-
-      let book = await Books.findByPk(id);
-      if (req.file) {
-         let tmp_path = req.file.path;
-         let originalExt = req.file.originalname.split('.')[req.file.originalname.split('.').length - 1];
-         let filename = req.file.filename + '.' + originalExt;
-         let target_path = path.resolve(config.rootPath, `public/images/books/${filename}`);
-
-         const src = fs.createReadStream(tmp_path);
-         const dest = fs.createWriteStream(target_path);
-         src.pipe(dest);
-
-         src.on('end', async () => {
-            try {
-               // Cari buku berdasarkan ID
-               let currentImage = `${config.rootPath}/public/images/books/${book.image_url}`;
-
-               if (fs.existsSync(currentImage)) {
-                  fs.unlinkSync(currentImage);
-               }
-
-               // Update data buku
-               await book.update({ title, author, year, isbn, status, image_url: filename, categoryId: category.id, });
-               // Simpan semua relasi sekaligus
-               await TagBooks.bulkCreate(booktags);
-
-               return res.json({ book, message: 'Successfully updated' });
-            } catch (err) {
-               fs.unlinkSync(target_path);
-               if (err && err.name === 'ValidationError') {
-                  return res.json({
-                     error: 1,
-                     message: err.message,
-                     fields: err.errors
-                  })
-               }
-               next(err);
-            }
-         })
-
-         src.on('error', async () => {
-            next(err)
-         })
-      } else {
-         // Update data buku
-         await book.update({ title, author, year, isbn, status, image_url: filename, categoryId: category.id, });
-         // Simpan semua relasi sekaligus
-         await TagBooks.bulkCreate(booktags);
-         return res.json({ book, message: 'Successfully updated' });
-      }
-   } catch (err) {
-      if (err && err.name === 'ValidationError') {
-         return res.json({
-            error: 1,
-            message: err.message,
-            fields: err.errors
-         })
+            fields: err.errors,
+         });
       }
       next(err);
    }
 };
+
+
+const update = async (req, res, next) => {
+   try {
+      const { id } = req.params;
+      const { title, author, year, isbn, status, categoryId } = req.body;
+
+      const book = await Books.findByPk(id);
+      if (!book) return res.status(404).json({ message: "Book not found" });
+
+      let imageUrl = book.image_url;
+      let cloudinaryId = book.cloudinary_id;
+
+      if (req.file) {
+         // Jika ada file baru, hapus file lama di cloudinary
+         if (cloudinaryId) {
+            await cloudinary.uploader.destroy(cloudinaryId);
+         }
+
+         // Upload file baru
+         const result = await cloudinary.uploader.upload_stream(
+            { folder: "books" },
+            async (error, result) => {
+               if (error) return next(error);
+
+               imageUrl = result.secure_url;
+               cloudinaryId = result.public_id;
+
+               await book.update({
+                  title,
+                  author,
+                  year,
+                  isbn,
+                  status,
+                  categoryId,
+                  image_url: imageUrl,
+                  cloudinary_id: cloudinaryId,
+               });
+
+               return res.json({ message: "Book updated successfully", book });
+            }
+         );
+
+         // pipe ke cloudinary
+         streamifier.createReadStream(req.file.buffer).pipe(result);
+      } else {
+         // Jika tidak update gambar
+         await book.update({
+            title,
+            author,
+            year,
+            isbn,
+            status,
+            categoryId,
+         });
+
+         return res.json({ message: "Book updated successfully", book });
+      }
+   } catch (err) {
+      console.error(err);
+      next(err);
+   }
+};
+
 
 const destroy = async (req, res) => {
    const id = req.params.id;

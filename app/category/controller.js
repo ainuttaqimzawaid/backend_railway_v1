@@ -31,6 +31,8 @@ const index = async (req, res, next) => {
       }
    } catch (err) {
       next(err);
+      // console.error('Sequelize error:', err); // << penting
+      // res.status(500).json({ message: err.message });
    }
 };
 

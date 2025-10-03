@@ -31,6 +31,8 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.JSON,
       defaultValue: [],
     }
+  }, {
+    tableName: 'users', // 🔑 samakan dengan nama tabel di DB
   });
 
   // Hook untuk validasi email unik

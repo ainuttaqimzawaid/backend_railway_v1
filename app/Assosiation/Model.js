@@ -17,7 +17,7 @@ const TagBooks = sequelize.define('TagBooks', {
         primaryKey: true,
         autoIncrement: true
     },
-}, { timestamps: false });
+}, { tableName: 'tagbooks', timestamps: false });
 
 // relasi one to many Book dengan category
 Categories.hasMany(Books, { foreignKey: 'categoryId' });

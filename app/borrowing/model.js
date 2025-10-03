@@ -21,6 +21,8 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: false,
             defaultValue: 'borrowed', // atau 'returned'
         }
+    }, {
+        tableName: 'borrowings', // 🔑 samakan dengan nama tabel di DB
     });
 
     return Borrowing;

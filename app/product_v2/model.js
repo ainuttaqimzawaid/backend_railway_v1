@@ -70,6 +70,10 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.TEXT,
             allowNull: false,
         },
+        cloudinary_id: {   // ⬅️ simpan public_id Cloudinary
+            type: DataTypes.STRING,
+            allowNull: true,
+        },
         categoryId: {
             type: DataTypes.INTEGER,
             allowNull: false,
@@ -84,6 +88,8 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: false,
             defaultValue: 1,
         }
+    }, {
+        tableName: 'books', // 🔑 samakan dengan nama tabel di DB
     });
 
     return Book;
