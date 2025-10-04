@@ -1,6 +1,6 @@
 const path = require('path');
-const { env } = require('process');
-require('dotenv').config();
+// const { env } = require('process');
+// require('dotenv').config();
 
 const config = {
   rootPath: path.resolve(__dirname, '..'), // Menetapkan root path proyek

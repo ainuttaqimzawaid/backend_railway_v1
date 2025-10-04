@@ -1,4 +1,4 @@
-require("dotenv").config();
+// require("dotenv").config();
 const { Sequelize } = require('sequelize');
 //deklarasi mysql2 agar bisa digunakan divercel
 require('mysql2');
