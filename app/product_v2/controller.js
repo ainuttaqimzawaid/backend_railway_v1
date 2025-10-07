@@ -210,8 +210,8 @@ const update = async (req, res, next) => {
 
       if (req.file) {
          // Jika ada file baru, hapus file lama di cloudinary
-         if (cloudinaryId) {
-            await cloudinary.uploader.destroy(cloudinaryId);
+         if (cloudinary_id) {
+            await cloudinary.uploader.destroy(cloudinary_id);
          }
 
          // Upload file baru
@@ -265,9 +265,8 @@ const destroy = async (req, res) => {
    try {
       // Cari buku berdasarkan ID
       let book = await Books.findByPk(id);
-      let currentImage = `${config.rootPath}/public/images/books/${book.image_url}`;
-      if (fs.existsSync(currentImage)) {
-         fs.unlinkSync(currentImage);
+      if (cloudinary_id) {
+         await cloudinary.uploader.destroy(cloudinary_id);
       }
 
       await Books.destroy({
