@@ -265,16 +265,16 @@ const destroy = async (req, res, next) => {
    try {
       // Cari buku berdasarkan ID
       let book = await Books.findByPk(id);
-      if (cloudinary_id) {
-         await cloudinary.uploader.destroy(cloudinary_id);
-      }
+      // if (cloudinary_id) {
+      //    await cloudinary.uploader.destroy(cloudinary_id);
+      // }
 
       await Books.destroy({
          where: { id }
       })
-      await TagBooks.destroy({
-         where: { id }
-      })
+      // await TagBooks.destroy({
+      //    where: { id }
+      // })
       return res.json({ book, message: 'Book successfully deleted' });
    } catch (err) {
       next(err);
