@@ -277,6 +277,7 @@ const destroy = async (req, res, next) => {
       // })
       return res.json({ book, message: 'Book successfully deleted' });
    } catch (err) {
+      console.error(err);
       next(err);
    }
 };
