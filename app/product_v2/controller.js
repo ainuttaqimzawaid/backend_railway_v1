@@ -273,7 +273,7 @@ const update = async (req, res, next) => {
    }
 };
 
-const destroy = async (req, res) => {
+const destroy = async (req, res, next) => {
    const id = req.params.id;
    try {
       // Cari buku berdasarkan ID
