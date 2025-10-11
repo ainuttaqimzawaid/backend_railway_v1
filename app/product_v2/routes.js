@@ -28,7 +28,7 @@ router.put(
 
 router.delete(
     '/book/:id',
-    police_check('delete', 'Books'),
+    // police_check('delete', 'Books'),
     bookController.destroy
 );
 

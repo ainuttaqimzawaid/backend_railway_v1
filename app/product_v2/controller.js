@@ -275,7 +275,10 @@ const destroy = async (req, res, next) => {
       // await TagBooks.destroy({
       //    where: { id }
       // })
-      return res.json({ book, message: 'Book successfully deleted' });
+      return res.json({
+         // book,
+         message: 'Book successfully deleted'
+      });
    } catch (err) {
       console.error(err);
       next(err);
