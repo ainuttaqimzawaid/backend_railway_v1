@@ -60,7 +60,7 @@ const index = async (req, res, next) => {
       }
    } catch (err) {
       next(err);
-      // console.error('Sequelize error:', err); // << penting
+      // console.error('Sequelize error:', err); // << untuk console eror sebenarnya
       // res.status(500).json({ message: err.message });
    }
 };
@@ -264,19 +264,19 @@ const destroy = async (req, res, next) => {
    const id = req.params.id;
    try {
       // Cari buku berdasarkan ID
-      // const book = await Books.findByPk(id);
-      // if (cloudinary_id) {
-      //    await cloudinary.uploader.destroy(cloudinary_id);
-      // }
+      const book = await Books.findByPk(id);
+      if (cloudinary_id) {
+         await cloudinary.uploader.destroy(cloudinary_id);
+      }
 
       await Books.destroy({
          where: { id }
       })
-      // await TagBooks.destroy({
-      //    where: { id }
-      // })
+      await TagBooks.destroy({
+         where: { id }
+      })
       return res.json({
-         // book,
+         book,
          message: 'Book successfully deleted'
       });
    } catch (err) {
