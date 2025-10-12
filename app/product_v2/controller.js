@@ -265,8 +265,9 @@ const destroy = async (req, res, next) => {
    try {
       // Cari buku berdasarkan ID
       const book = await Books.findByPk(id);
-      if (cloudinary_id) {
-         await cloudinary.uploader.destroy(cloudinary_id);
+      let cloudinaryId = book.cloudinary_id;
+      if (cloudinaryId) {
+         await cloudinary.uploader.destroy(cloudinaryId);
       }
 
       await Books.destroy({
