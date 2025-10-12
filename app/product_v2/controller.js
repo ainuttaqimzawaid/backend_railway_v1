@@ -210,8 +210,8 @@ const update = async (req, res, next) => {
 
       if (req.file) {
          // Jika ada file baru, hapus file lama di cloudinary
-         if (cloudinary_id) {
-            await cloudinary.uploader.destroy(cloudinary_id);
+         if (cloudinaryId) {
+            await cloudinary.uploader.destroy(cloudinaryId);
          }
 
          // Upload file baru
