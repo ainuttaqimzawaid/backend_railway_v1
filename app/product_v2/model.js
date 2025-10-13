@@ -26,7 +26,7 @@ module.exports = (sequelize, DataTypes) => {
         },
         image_url: {
             type: DataTypes.TEXT,
-            allowNull: false,
+            allowNull: true,
         },
         categoryId: {
             type: DataTypes.INTEGER,

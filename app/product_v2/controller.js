@@ -134,8 +134,9 @@ const view = async (req, res, next) => {
 
 const store = async (req, res, next) => {
    try {
-      const { title, author, year, isbn, status, categoryId } = req.body;
-      const category = await Categories.findOne({ where: { name: categoryId } });
+      let payload = req.body;
+      console.log(payload.category);
+      const category = await Categories.findOne({ where: { name: payload.category } });
 
       if (req.file) {
          let tmp_path = req.file.path;
@@ -151,7 +152,7 @@ const store = async (req, res, next) => {
             try {
                await Books.sync();
                await TagBooks.sync()
-               let book = await Books.create({ title, author, year, isbn, status, image_url: filename, categoryId: category.id, });
+               let book = await Books.create({ ...payload, image_url: filename, categoryId: category.id, });
                return res.json(book);
             } catch (err) {
                fs.unlinkSync(target_path);
@@ -170,8 +171,17 @@ const store = async (req, res, next) => {
             next(err);
          });
       } else {
-         await Books.sync();
-         let book = await Books.create({ title, author, year, isbn, status, categoryId: category.id, });
+         // await Books.sync();
+         // let book = await Books.create({ title, author, year, isbn, status, categoryId: category.id, });
+
+         let book;
+         if (Array.isArray(req.body)) {
+            // Bulk insert
+            book = await Books.bulkCreate(payload);
+         } else {
+            // Single insert
+            book = await Books.create(payload);
+         }
          return res.json(book);
       }
    } catch (err) {

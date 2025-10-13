@@ -39,9 +39,16 @@ const view = async (req, res, next) => {
 
 const store = async (req, res, next) => {
     try {
-        const { name } = req.body;
-        await Tags.sync();
-        let tag = await Tags.create({ name });
+        let tag;
+
+        if (Array.isArray(req.body)) {
+            // Bulk insert
+            tag = await Tags.bulkCreate(req.body);
+        } else {
+            // Single insert
+            const { name } = req.body;
+            categories = await Tags.create({ name });
+        }
         return res.json(tag);
     } catch (err) {
         if (err && err.name === 'ValidationError') {
