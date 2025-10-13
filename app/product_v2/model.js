@@ -68,7 +68,7 @@ module.exports = (sequelize, DataTypes) => {
         },
         image_url: {
             type: DataTypes.TEXT,
-            allowNull: false,
+            allowNull: true,
         },
         cloudinary_id: {   // ⬅️ simpan public_id Cloudinary
             type: DataTypes.STRING,
@@ -89,7 +89,7 @@ module.exports = (sequelize, DataTypes) => {
             defaultValue: 1,
         }
     }, {
-        tableName: 'books', // 🔑 samakan dengan nama tabel di DB
+        tableName: 'books',
     });
 
     return Book;
