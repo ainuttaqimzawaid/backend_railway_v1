@@ -12,6 +12,14 @@ const streamifier = require('streamifier');
 
 const index = async (req, res, next) => {
    try {
+      // Ambil parameter dari query
+      let limit = parseInt(req.query.limit, 10);
+      let offset = parseInt(req.query.offset, 10);
+
+      // Validasi dan default
+      if (isNaN(limit) || limit <= 0) limit = 10;
+      if (isNaN(offset) || offset < 0) offset = 0;
+
       const { search } = req.query;
       let book = '';
       if (search) {
@@ -34,11 +42,19 @@ const index = async (req, res, next) => {
                   }
                }
             ],
-            limit: 20,
-            offset: 0,
+            limit,
+            offset,
          })
          return res.json(book)
       } else {
+         // Ambil parameter dari query
+         let limit = parseInt(req.query.limit, 10);
+         let offset = parseInt(req.query.offset, 10);
+
+         // Validasi dan default
+         if (isNaN(limit) || limit <= 0) limit = 10;
+         if (isNaN(offset) || offset < 0) offset = 0;
+
          book = await Books.findAndCountAll({
             include: [
                {
@@ -53,8 +69,8 @@ const index = async (req, res, next) => {
                   }
                }
             ],
-            limit: 20,
-            // offset: 5, //skip row
+            limit,
+            offset,
          });
          return res.json(book);
       }
@@ -67,9 +83,17 @@ const index = async (req, res, next) => {
 
 const favorite = async (req, res, next) => {
    try {
+      // Ambil parameter dari query
+      let limit = parseInt(req.query.limit, 10);
+      let offset = parseInt(req.query.offset, 10);
+
+      // Validasi dan default
+      if (isNaN(limit) || limit <= 0) limit = 10;
+      if (isNaN(offset) || offset < 0) offset = 0;
       const books = await Books.findAll({
          order: [['readCount', 'DESC']],
-         limit: 5
+         limit,
+         offset,
       });
       return res.json(books);
    } catch (err) {
@@ -79,9 +103,18 @@ const favorite = async (req, res, next) => {
 
 const newRelease = async (req, res, next) => {
    try {
+      // Ambil parameter dari query
+      let limit = parseInt(req.query.limit, 10);
+      let offset = parseInt(req.query.offset, 10);
+
+      // Validasi dan default
+      if (isNaN(limit) || limit <= 0) limit = 10;
+      if (isNaN(offset) || offset < 0) offset = 0;
+
       const books = await Books.findAll({
          order: [['year', 'DESC']],
-         limit: 5
+         limit,
+         offset,
       });
       return res.json(books);
    } catch (err) {
@@ -91,6 +124,14 @@ const newRelease = async (req, res, next) => {
 
 const newArrival = async (req, res, next) => {
    try {
+      // Ambil parameter dari query
+      let limit = parseInt(req.query.limit, 10);
+      let offset = parseInt(req.query.offset, 10);
+
+      // Validasi dan default
+      if (isNaN(limit) || limit <= 0) limit = 10;
+      if (isNaN(offset) || offset < 0) offset = 0;
+
       const days = parseInt(req.query.days) || 30; // default: 30 hari terakhir
       const fromDate = new Date();
       fromDate.setDate(fromDate.getDate() - days);
@@ -102,7 +143,8 @@ const newArrival = async (req, res, next) => {
             }
          },
          order: [['createdAt', 'DESC']],
-         limit: parseInt(req.query.limit) || 10
+         limit,
+         offset,
       });
 
       return res.json(books);
