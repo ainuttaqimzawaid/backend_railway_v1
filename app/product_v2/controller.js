@@ -61,9 +61,18 @@ const index = async (req, res, next) => {
 
 const favorite = async (req, res, next) => {
    try {
-      const books = await Books.findAll({
+      // Ambil parameter dari query
+      let limit = parseInt(req.query.limit, 10);
+      let offset = parseInt(req.query.offset, 10);
+
+      // Validasi dan default
+      if (isNaN(limit) || limit <= 0) limit = 10;
+      if (isNaN(offset) || offset < 0) offset = 0;
+
+      const books = await Books.findAndCountAll({
          order: [['readCount', 'DESC']],
-         limit: 5
+         limit,
+         offset,
       });
       return res.json(books);
    } catch (err) {
@@ -73,9 +82,17 @@ const favorite = async (req, res, next) => {
 
 const newRelease = async (req, res, next) => {
    try {
+      // Ambil parameter dari query
+      let limit = parseInt(req.query.limit, 10);
+      let offset = parseInt(req.query.offset, 10);
+
+      // Validasi dan default
+      if (isNaN(limit) || limit <= 0) limit = 10;
+      if (isNaN(offset) || offset < 0) offset = 0;
       const books = await Books.findAll({
          order: [['year', 'DESC']],
-         limit: 5
+         limit,
+         offset,
       });
       return res.json(books);
    } catch (err) {
@@ -85,6 +102,13 @@ const newRelease = async (req, res, next) => {
 
 const newArrival = async (req, res, next) => {
    try {
+      // Ambil parameter dari query
+      let limit = parseInt(req.query.limit, 10);
+      let offset = parseInt(req.query.offset, 10);
+
+      // Validasi dan default
+      if (isNaN(limit) || limit <= 0) limit = 10;
+      if (isNaN(offset) || offset < 0) offset = 0;
       const days = parseInt(req.query.days) || 30; // default: 30 hari terakhir
       const fromDate = new Date();
       fromDate.setDate(fromDate.getDate() - days);
@@ -96,7 +120,8 @@ const newArrival = async (req, res, next) => {
             }
          },
          order: [['createdAt', 'DESC']],
-         limit: parseInt(req.query.limit) || 10
+         limit,
+         offset,
       });
 
       return res.json(books);
