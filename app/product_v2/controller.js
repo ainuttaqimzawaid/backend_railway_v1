@@ -90,7 +90,7 @@ const favorite = async (req, res, next) => {
       // Validasi dan default
       if (isNaN(limit) || limit <= 0) limit = 10;
       if (isNaN(offset) || offset < 0) offset = 0;
-      const books = await Books.findAll({
+      const books = await Books.findAndCountAll({
          order: [['readCount', 'DESC']],
          limit,
          offset,
@@ -111,7 +111,7 @@ const newRelease = async (req, res, next) => {
       if (isNaN(limit) || limit <= 0) limit = 10;
       if (isNaN(offset) || offset < 0) offset = 0;
 
-      const books = await Books.findAll({
+      const books = await Books.findAndCountAll({
          order: [['year', 'DESC']],
          limit,
          offset,
@@ -136,7 +136,7 @@ const newArrival = async (req, res, next) => {
       const fromDate = new Date();
       fromDate.setDate(fromDate.getDate() - days);
 
-      const books = await Books.findAll({
+      const books = await Books.findAndCountAll({
          where: {
             createdAt: {
                [Op.gte]: fromDate
