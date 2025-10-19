@@ -111,8 +111,16 @@ const newRelease = async (req, res, next) => {
       if (isNaN(limit) || limit <= 0) limit = 10;
       if (isNaN(offset) || offset < 0) offset = 0;
 
+      const currentYear = new Date().getFullYear();
+
+      // Ambil buku dengan tahun >= tahun sekarang - 1
       const books = await Books.findAndCountAll({
-         order: [['year', 'DESC']],
+         where: {
+            year: {
+               [Op.gte]: currentYear - 1, // hanya 1 tahun terakhir
+            },
+         },
+         order: [["year", "DESC"]],
          limit,
          offset,
       });
@@ -180,6 +188,7 @@ const view = async (req, res, next) => {
    }
 };
 
+//task: pakai transaction karena ada insert ke Books & insert ke TagBooks (bulkcreate di branch ini belum dibuat), sehingga ini termasuk kategori multi-step operation yang sebaiknya pakai transaction.
 const store = async (req, res, next) => {
    try {
       const { title, author, year, isbn, status, categoryId } = req.body;
@@ -238,7 +247,7 @@ const store = async (req, res, next) => {
    }
 };
 
-
+//task: pakai transaction karena ada update ke tabel Books & insert ke TagBooks (bulkcreate di branch ini belum dibuat), sehingga ini termasuk kategori multi-step operation yang sebaiknya pakai transaction.
 const update = async (req, res, next) => {
    try {
       const { id } = req.params;

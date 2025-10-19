@@ -1,5 +1,4 @@
-// controllers/queue/controller.js
-const { Books, Queues, Borrowings, sequelize, Users } = require('../Assosiation/Model'); // sesuaikan path
+const { Books, Queues, Borrowings, sequelize, Users } = require('../Assosiation/Model');
 const { Op } = require('sequelize');
 
 const store = async (req, res) => {
@@ -37,7 +36,6 @@ const store = async (req, res) => {
     }
 };
 
-// GET /api/queues/:bookId
 const index = async (req, res) => {
     const userId = req.user.id;
     try {
@@ -54,7 +52,6 @@ const index = async (req, res) => {
     }
 };
 
-// PUT /api/queues/cancel/:id
 const destroy = async (req, res) => {
     const { id } = req.params;
     const userId = req.user.id;
@@ -71,12 +68,6 @@ const destroy = async (req, res) => {
     }
 };
 
-/**
- * Optional admin endpoint to assign next user in queue automatically:
- * POST /api/queues/process/:bookId
- * - If there's availableCopies > 0 and there's a waiting queue, this endpoint
- *   will create a Borrowing for the first waiting user and decrement availableCopies.
- */
 const processNextInQueue = async (req, res) => {
     const { bookId } = req.params;
     const t = await sequelize.transaction();

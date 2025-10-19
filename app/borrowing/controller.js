@@ -87,7 +87,7 @@ const returnBook = async (req, res) => {
         borrowing.status = 'returned';
         await borrowing.save({ transaction: t });
 
-        // tambah availableCopies
+        // tambah availableCopies & readCount di table books
         const book = await Books.findByPk(borrowing.bookId, { transaction: t, lock: t.LOCK.UPDATE });
         if (!book) {
             // unlikely
@@ -95,7 +95,10 @@ const returnBook = async (req, res) => {
             return res.status(404).json({ message: 'Related book not found' });
         }
 
-        await book.update({ availableCopies: book.availableCopies + 1 }, { transaction: t });
+        await book.update({
+            availableCopies: book.availableCopies + 1,
+            readCount: book.readCount + 1
+        }, { transaction: t });
 
         await t.commit();
         return res.json({ message: "Book returned successfully", borrowing });
