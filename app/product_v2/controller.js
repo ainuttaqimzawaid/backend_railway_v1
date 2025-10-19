@@ -84,18 +84,51 @@ const index = async (req, res, next) => {
 const favorite = async (req, res, next) => {
    try {
       // Ambil parameter dari query
-      let limit = parseInt(req.query.limit, 10);
-      let offset = parseInt(req.query.offset, 10);
+      let limit = parseInt(req.query.limit, 10) || 10;
+      const lastReadCount = parseInt(req.query.lastReadCount, 10) || null;
+      const lastId = parseInt(req.query.lastId, 10) || null;
 
-      // Validasi dan default
-      if (isNaN(limit) || limit <= 0) limit = 10;
-      if (isNaN(offset) || offset < 0) offset = 0;
-      const books = await Books.findAndCountAll({
-         order: [['readCount', 'DESC']],
-         limit,
-         offset,
+      // Siapkan kondisi dasar
+      const where = {};
+
+      // Jika ada cursor, ambil buku setelah posisi terakhir
+      if (lastReadCount && lastId) {
+         where[Op.or] = [
+            { readCount: { [Op.lt]: lastReadCount } },
+            {
+               [Op.and]: [
+                  { readCount: lastReadCount },
+                  { id: { [Op.lt]: lastId } }
+               ]
+            }
+         ];
+      }
+
+      // Query buku dengan urutan berdasarkan popularitas
+      const books = await Books.findAll({
+         where,
+         order: [
+            ['readCount', 'DESC'],
+            ['id', 'DESC'] // untuk menjaga urutan deterministik
+         ],
+         limit
       });
-      return res.json(books);
+
+      // Hitung total (opsional — bisa dihapus kalau dataset besar)
+      const totalCount = await Books.count();
+
+      // Cursor baru (buat lazy loading berikutnya)
+      const lastBook = books[books.length - 1];
+      const nextCursor = lastBook
+         ? { lastReadCount: lastBook.readCount, lastId: lastBook.id }
+         : null;
+
+      return res.json({
+         count: totalCount,
+         rows: books,
+         nextCursor
+      });
+
    } catch (err) {
       next(err);
    }
