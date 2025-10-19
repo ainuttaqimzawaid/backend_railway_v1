@@ -81,9 +81,6 @@ const index = async (req, res, next) => {
    }
 };
 
-import { Op } from 'sequelize';
-import { Books } from '../models'; // pastikan path sesuai
-
 const favorite = async (req, res, next) => {
    try {
       // Ambil parameter dari query
