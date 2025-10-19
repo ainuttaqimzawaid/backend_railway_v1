@@ -13,71 +13,56 @@ const streamifier = require('streamifier');
 const index = async (req, res, next) => {
    try {
       // Ambil parameter dari query
-      let limit = parseInt(req.query.limit, 10);
-      let offset = parseInt(req.query.offset, 10);
+      const limit = parseInt(req.query.limit, 10) || 10;
+      const lastId = req.query.lastId ? parseInt(req.query.lastId, 10) : null;
+      const search = req.query.search || null;
 
-      // Validasi dan default
-      if (isNaN(limit) || limit <= 0) limit = 10;
-      if (isNaN(offset) || offset < 0) offset = 0;
+      // Kondisi dasar
+      const where = {};
 
-      const { search } = req.query;
-      let book = '';
+      // Jika ada pencarian judul
       if (search) {
-         book = await Books.findAndCountAll({
-            where: {
-               title: {
-                  [Op.like]: `%${search}%`  // Pencarian substring dengan wildcard
-               }
-            },
-            include: [
-               {
-                  model: Categories, // Mengambil data Category yang berelasi dengan Book
-                  attributes: ['id', 'name'] // Menampilkan id dan name dari Category
-               },
-               {
-                  model: Tags, // Mengambil data Tag yang berelasi dengan Book
-                  attributes: ['id', 'name'],
-                  through: {
-                     attributes: [] // Menghilangkan atribut dari tabel penghubung (BookTags)
-                  }
-               }
-            ],
-            limit,
-            offset,
-         })
-         return res.json(book)
-      } else {
-         // Ambil parameter dari query
-         let limit = parseInt(req.query.limit, 10);
-         let offset = parseInt(req.query.offset, 10);
-
-         // Validasi dan default
-         if (isNaN(limit) || limit <= 0) limit = 10;
-         if (isNaN(offset) || offset < 0) offset = 0;
-
-         book = await Books.findAndCountAll({
-            include: [
-               {
-                  model: Categories, // Mengambil data Category yang berelasi dengan Book
-                  attributes: ['id', 'name'] // Menampilkan id dan name dari Category
-               },
-               {
-                  model: Tags, // Mengambil data Tag yang berelasi dengan Book
-                  attributes: ['id', 'name'],
-                  through: {
-                     attributes: [] // Menghilangkan atribut dari tabel penghubung (BookTags)
-                  }
-               }
-            ],
-            limit,
-            offset,
-         });
-         return res.json(book);
+         where.title = { [Op.like]: `%${search}%` };
       }
+
+      // Jika ada cursor (lastId), ambil buku dengan id lebih kecil
+      if (lastId) {
+         where.id = { [Op.lt]: lastId };
+      }
+
+      // Ambil data buku
+      const books = await Books.findAll({
+         where,
+         include: [
+            {
+               model: Categories,
+               attributes: ['id', 'name']
+            },
+            {
+               model: Tags,
+               attributes: ['id', 'name'],
+               through: { attributes: [] }
+            }
+         ],
+         order: [['id', 'DESC']], // penting untuk stabilitas cursor
+         limit
+      });
+
+      // Hitung total buku (opsional — bisa dihapus kalau dataset besar)
+      const totalCount = await Books.count({ where });
+
+      // Tentukan cursor berikutnya
+      const lastBook = books[books.length - 1];
+      const nextCursor = lastBook ? { lastId: lastBook.id } : null;
+
+      return res.json({
+         count: totalCount,
+         rows: books,
+         nextCursor
+      });
+
    } catch (err) {
       next(err);
-      // console.error('Sequelize error:', err); // << untuk console eror sebenarnya
-      // res.status(500).json({ message: err.message });
    }
 };
 
@@ -144,27 +129,61 @@ const favorite = async (req, res, next) => {
 const newRelease = async (req, res, next) => {
    try {
       // Ambil parameter dari query
-      let limit = parseInt(req.query.limit, 10);
-      let offset = parseInt(req.query.offset, 10);
-
-      // Validasi dan default
-      if (isNaN(limit) || limit <= 0) limit = 10;
-      if (isNaN(offset) || offset < 0) offset = 0;
+      const limit = parseInt(req.query.limit, 10) || 10;
+      const lastYear = parseInt(req.query.lastYear, 10) || null;
+      const lastId = parseInt(req.query.lastId, 10) || null;
 
       const currentYear = new Date().getFullYear();
 
-      // Ambil buku dengan tahun >= tahun sekarang - 1
-      const books = await Books.findAndCountAll({
-         where: {
-            year: {
-               [Op.gte]: currentYear - 1, // hanya 1 tahun terakhir
-            },
-         },
-         order: [["year", "DESC"]],
-         limit,
-         offset,
+      // Kondisi dasar: hanya buku dari 1 tahun terakhir
+      const where = {
+         year: {
+            [Op.gte]: currentYear - 1
+         }
+      };
+
+      // Jika ada cursor (year + id)
+      if (lastYear && lastId) {
+         where[Op.or] = [
+            { year: { [Op.lt]: lastYear } },
+            {
+               [Op.and]: [
+                  { year: lastYear },
+                  { id: { [Op.lt]: lastId } }
+               ]
+            }
+         ];
+      }
+
+      // Query buku berdasarkan tahun rilis terbaru
+      const books = await Books.findAll({
+         where,
+         order: [
+            ['year', 'DESC'], // urut dari terbaru
+            ['id', 'DESC'] // stabilitas urutan
+         ],
+         limit
       });
-      return res.json(books);
+
+      // Hitung total (opsional, bisa dihapus kalau dataset besar)
+      const totalCount = await Books.count({
+         where: {
+            year: { [Op.gte]: currentYear - 1 }
+         }
+      });
+
+      // Cursor untuk permintaan berikutnya
+      const lastBook = books[books.length - 1];
+      const nextCursor = lastBook
+         ? { lastYear: lastBook.year, lastId: lastBook.id }
+         : null;
+
+      return res.json({
+         count: totalCount,
+         rows: books,
+         nextCursor
+      });
+
    } catch (err) {
       next(err);
    }
@@ -172,30 +191,60 @@ const newRelease = async (req, res, next) => {
 
 const newArrival = async (req, res, next) => {
    try {
-      // Ambil parameter dari query
-      let limit = parseInt(req.query.limit, 10);
-      let offset = parseInt(req.query.offset, 10);
+      const limit = parseInt(req.query.limit, 10) || 10;
+      const days = parseInt(req.query.days, 10) || 30; // default: 30 hari terakhir
 
-      // Validasi dan default
-      if (isNaN(limit) || limit <= 0) limit = 10;
-      if (isNaN(offset) || offset < 0) offset = 0;
+      const lastCreatedAt = req.query.lastCreatedAt || null;
+      const lastId = parseInt(req.query.lastId, 10) || null;
 
-      const days = parseInt(req.query.days) || 30; // default: 30 hari terakhir
+      // Hitung batas tanggal
       const fromDate = new Date();
       fromDate.setDate(fromDate.getDate() - days);
 
-      const books = await Books.findAndCountAll({
-         where: {
-            createdAt: {
-               [Op.gte]: fromDate
+      // Kondisi dasar
+      const where = {
+         createdAt: { [Op.gte]: fromDate }
+      };
+
+      // Jika ada cursor (paginasi lanjutan)
+      if (lastCreatedAt && lastId) {
+         where[Op.or] = [
+            { createdAt: { [Op.lt]: new Date(lastCreatedAt) } },
+            {
+               [Op.and]: [
+                  { createdAt: new Date(lastCreatedAt) },
+                  { id: { [Op.lt]: lastId } }
+               ]
             }
-         },
-         order: [['createdAt', 'DESC']],
-         limit,
-         offset,
+         ];
+      }
+
+      // Ambil data terbaru
+      const books = await Books.findAll({
+         where,
+         order: [
+            ['createdAt', 'DESC'],
+            ['id', 'DESC']
+         ],
+         limit
       });
 
-      return res.json(books);
+      // Hitung total (opsional)
+      const totalCount = await Books.count({
+         where: { createdAt: { [Op.gte]: fromDate } }
+      });
+
+      // Siapkan cursor berikutnya
+      const lastBook = books[books.length - 1];
+      const nextCursor = lastBook
+         ? { lastCreatedAt: lastBook.createdAt, lastId: lastBook.id }
+         : null;
+
+      return res.json({
+         count: totalCount,
+         rows: books,
+         nextCursor
+      });
    } catch (err) {
       next(err);
    }
