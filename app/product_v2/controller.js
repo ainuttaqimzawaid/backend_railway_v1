@@ -81,18 +81,25 @@ const index = async (req, res, next) => {
    }
 };
 
+import { Op } from 'sequelize';
+import { Books } from '../models'; // pastikan path sesuai
+
 const favorite = async (req, res, next) => {
    try {
       // Ambil parameter dari query
-      let limit = parseInt(req.query.limit, 10) || 10;
-      const lastReadCount = parseInt(req.query.lastReadCount, 10) || null;
-      const lastId = parseInt(req.query.lastId, 10) || null;
+      const limit = parseInt(req.query.limit, 10) || 10;
+      const lastReadCount = req.query.lastReadCount ? parseInt(req.query.lastReadCount, 10) : null;
+      const lastId = req.query.lastId ? parseInt(req.query.lastId, 10) : null;
 
-      // Siapkan kondisi dasar
-      const where = {};
+      // Kondisi dasar: hanya ambil buku yang sudah dibaca minimal 1 kali
+      const where = {
+         readCount: {
+            [Op.gte]: 1 // ambil hanya buku yang pernah dibaca
+         }
+      };
 
-      // Jika ada cursor, ambil buku setelah posisi terakhir
-      if (lastReadCount && lastId) {
+      // Jika ada cursor (untuk pagination)
+      if (lastReadCount !== null && lastId !== null) {
          where[Op.or] = [
             { readCount: { [Op.lt]: lastReadCount } },
             {
@@ -104,20 +111,22 @@ const favorite = async (req, res, next) => {
          ];
       }
 
-      // Query buku dengan urutan berdasarkan popularitas
+      // Query buku berdasarkan popularitas
       const books = await Books.findAll({
          where,
          order: [
             ['readCount', 'DESC'],
-            ['id', 'DESC'] // untuk menjaga urutan deterministik
+            ['id', 'DESC'] // untuk urutan stabil jika readCount sama
          ],
          limit
       });
 
-      // Hitung total (opsional — bisa dihapus kalau dataset besar)
-      const totalCount = await Books.count();
+      // Hitung total buku yang sudah dibaca (opsional, bisa dihapus jika dataset besar)
+      const totalCount = await Books.count({
+         where: { readCount: { [Op.gte]: 1 } }
+      });
 
-      // Cursor baru (buat lazy loading berikutnya)
+      // Cursor untuk request berikutnya
       const lastBook = books[books.length - 1];
       const nextCursor = lastBook
          ? { lastReadCount: lastBook.readCount, lastId: lastBook.id }
@@ -133,6 +142,7 @@ const favorite = async (req, res, next) => {
       next(err);
    }
 };
+
 
 const newRelease = async (req, res, next) => {
    try {
