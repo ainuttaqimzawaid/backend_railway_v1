@@ -14,6 +14,34 @@ const addReview = async (req, res) => {
     }
 };
 
+const updateReview = async (req, res) => {
+    try {
+        const { bookId } = req.params;
+        const { rating, comment } = req.body;
+        const userId = req.user.id;
+
+        // 🔎 Pastikan review milik user yang login
+        const review = await Reviews.findOne({
+            where: { userId, bookId },
+        });
+
+        if (!review) {
+            return res.status(404).json({
+                message: "Ulasan anda tidak ditemukan",
+            });
+        }
+
+        await review.update({ rating, comment });
+
+        res.json({
+            message: "Ulasan berhasil diperbarui.",
+            review,
+        });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+
 // Get reviews for a book
 const getReviewsByBook = async (req, res) => {
     try {
@@ -52,6 +80,7 @@ const getReviewsByUser = async (req, res) => {
 
 module.exports = {
     addReview,
+    updateReview,
     getReviewsByBook,
     getReviewsByUser
 }

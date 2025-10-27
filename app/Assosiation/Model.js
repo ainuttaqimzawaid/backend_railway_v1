@@ -43,13 +43,13 @@ Queues.belongsTo(Books, { foreignKey: 'bookId' });
 Users.hasMany(Queues, { foreignKey: 'userId' });
 Queues.belongsTo(Users, { foreignKey: 'userId' });
 
-// Book - Review (1:M)
-Books.hasMany(Reviews, { foreignKey: "bookId" });
-Reviews.belongsTo(Books, { foreignKey: "bookId" });
-
 // User - Review (1:M)
 Users.hasMany(Reviews, { foreignKey: "userId" });
 Reviews.belongsTo(Users, { foreignKey: "userId" });
+
+// Book - Review (1:M)
+Books.hasMany(Reviews, { foreignKey: "bookId" });
+Reviews.belongsTo(Books, { foreignKey: "bookId" });
 
 module.exports = {
     sequelize,
